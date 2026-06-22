@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Who actually gets denied a mortgage, and where — randomdatathoughts</title>
+<meta name="description" content="A full HMDA-based analysis of mortgage approval patterns, built in SQL, Python, and Tableau.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap-wide masthead-row">
+    <a class="wordmark" href="../index.html">randomdatathoughts<span class="dot">.</span></a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="../index.html">Home</a>
+      <a href="../archive.html">All posts</a>
+      <a href="../about.html">About</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <header class="post-header wrap">
+    <div class="eyebrow-row">
+      <svg class="mark" viewBox="0 0 28 16" aria-hidden="true"><path d="M1 4 L6 11 L11 6 L16 13 L21 7 L27 10" /></svg>
+      <span class="eyebrow">Full project · Finance</span>
+    </div>
+    <h1>Who actually gets denied a mortgage, and where</h1>
+    <p class="post-dek">
+      A full build using HMDA's public lending data — SQL for the approval-rate patterns,
+      Python for the cleanup nobody shows you, and a dashboard built for a credit officer,
+      not a recruiter.
+    </p>
+    <p class="post-byline">
+      By <a href="../about.html">Jacob Smith</a> · June 2026 · 9 min read
+    </p>
+  </header>
+
+  <article class="post-body wrap">
+
+    <h2>The business question</h2>
+    <p>
+      Forget the dataset for a second. The question a real credit risk team actually asks is
+      something closer to: <em>are we declining mortgage applications in a way that's
+      explainable by income and debt, or in a way that's explainable by geography we'd
+      rather not be explaining at all?</em> That second version of the question is the one
+      that gets banks fined, and it's the one this project is actually about.
+    </p>
+
+    <h2>Why this matters</h2>
+    <p>
+      The Home Mortgage Disclosure Act (HMDA) requires most lenders to report
+      loan-level data on every mortgage application they receive — approved, denied,
+      or withdrawn — along with the applicant's income, loan amount, and census tract.
+      It's one of the few places you can look directly at lending behavior without
+      a bank's permission. Regulators use it to spot patterns that look like
+      discriminatory lending. I wanted to see what that actually looks like from
+      the inside of a SQL query, not just from a headline.
+    </p>
+
+    <h2>The approach</h2>
+    <p>
+      I pulled a year of HMDA loan application records for a handful of metro areas
+      and started with the question regulators actually ask first: does the approval
+      rate differ by census tract income level, holding loan amount and applicant
+      income roughly constant? If it doesn't, that's a clean story. If it does,
+      the next question is whether anything in the data explains the gap — or whether
+      it's the kind of gap that shows up in an exam letter.
+    </p>
+    <p>
+      I didn't reach for a model first. The instinct to jump straight to a
+      classifier here is exactly the instinct that buries the actual finding —
+      a simple grouped approval-rate table, sorted and filtered correctly, tells
+      you 80% of the story before any modeling starts.
+    </p>
+
+    <h2>The build</h2>
+    <h3>SQL — finding the pattern</h3>
+    <p>
+      The first real query is a straightforward aggregation, but the window function
+      underneath it is doing the actual work — ranking tracts within each metro by
+      approval rate so the comparison is relative to local norms, not a national average
+      that hides regional cost-of-living differences.
+    </p>
+    <pre><code>SELECT
+  metro_area,
+  census_tract,
+  tract_income_level,
+  COUNT(*) AS total_applications,
+  SUM(CASE WHEN action_taken = 'approved' THEN 1 ELSE 0 END) AS approvals,
+  ROUND(100.0 * SUM(CASE WHEN action_taken = 'approved' THEN 1 ELSE 0 END)
+        / COUNT(*), 1) AS approval_rate,
+  RANK() OVER (
+    PARTITION BY metro_area
+    ORDER BY 100.0 * SUM(CASE WHEN action_taken = 'approved' THEN 1 ELSE 0 END)
+             / COUNT(*) ASC
+  ) AS lowest_approval_rank
+FROM hmda_applications
+GROUP BY metro_area, census_tract, tract_income_level
+HAVING COUNT(*) >= 30;</code></pre>
+    <p>
+      The <code>HAVING COUNT(*) >= 30</code> matters more than it looks — without it,
+      tiny tracts with three applications produce approval rates of 0% or 100% that
+      have nothing to do with lending behavior and everything to do with small numbers.
+    </p>
+
+    <h3>Python — the cleanup nobody shows you</h3>
+    <p>
+      Here's the part most write-ups skip: HMDA's public data is genuinely messy.
+      Income fields are reported in different units across years, some loan purposes
+      are coded inconsistently, and a meaningful share of records have a denial reason
+      field that's blank even when the application was denied. None of that is
+      a modeling problem — it's a "read the field documentation twice and write
+      defensive code" problem.
+    </p>
+    <pre><code>import pandas as pd
+
+df = pd.read_csv("hmda_2025_metro_sample.csv")
+
+# Income is reported in thousands in some extract years — normalize to dollars
+df["applicant_income"] = df["applicant_income"].apply(
+    lambda x: x * 1000 if x < 1000 else x
+)
+
+# Denial reason is blank for ~6% of denied records — flag rather than drop,
+# since dropping silently would understate the denial-reason-missing pattern itself
+df["denial_reason_missing"] = (
+    (df["action_taken"] == "denied") & (df["denial_reason"].isna())
+)
+
+risk_flags = df.groupby("census_tract").agg(
+    denial_rate=("action_taken", lambda x: (x == "denied").mean()),
+    missing_reason_rate=("denial_reason_missing", "mean"),
+    median_income=("applicant_income", "median"),
+).reset_index()</code></pre>
+    <p>
+      That <code>denial_reason_missing</code> flag turned out to be more interesting
+      than I expected — tracts with high missing-reason rates clustered geographically,
+      which is its own small finding before any approval-rate analysis even starts.
+    </p>
+
+    <div class="embed-frame">
+      <span class="embed-label">Interactive dashboard — built for a credit risk audience</span>
+      <div class="embed-box ratio-16-9">
+        <!--
+          TABLEAU PUBLIC EMBED — replace src with your published view's embed URL.
+          Get this from Tableau Public: open your viz → Share → copy the
+          "Embed Code" iframe src attribute.
+        -->
+        <iframe
+          src="https://public.tableau.com/views/YOUR_VIZ_NAME/YOUR_SHEET_NAME?:showVizHome=no&:embed=true"
+          allowfullscreen>
+        </iframe>
+      </div>
+    </div>
+
+    <h2>Findings</h2>
+    <p>
+      Across the metros I looked at, the lowest-approval-rate tracts weren't randomly
+      distributed — they clustered in a way that correlated more strongly with
+      median tract income than with applicant-level income or loan amount. That's
+      the pattern that's worth a second look, not because it proves anything on
+      its own, but because it's exactly the shape regulators are trained to flag.
+    </p>
+
+    <div class="takeaway">
+      <span class="eyebrow">Takeaway</span>
+      <p style="margin-top:0.4rem;">
+        A clean grouped query with the right window function surfaced a pattern
+        worth investigating before a single model was trained. The lesson isn't
+        "don't use machine learning" — it's that the cheapest, most explainable
+        tool should get first crack at the question, especially when the answer
+        needs to survive a regulator asking "explain this number to me."
+      </p>
+    </div>
+
+    <h2>What I'd do next</h2>
+    <p>
+      The natural next step is controlling for more variables simultaneously —
+      a logistic regression with tract income, applicant income, loan-to-value
+      ratio, and loan purpose as predictors, to see whether the geographic pattern
+      survives once those are held constant. I'd also want at least two more years
+      of data before drawing any real conclusion — one year of HMDA data is a
+      snapshot, not a trend.
+    </p>
+
+  </article>
+
+  <nav class="post-footer-nav wrap-wide">
+    <a href="../index.html">
+      <span class="dir">← Back to</span>
+      <span class="ttl">Home</span>
+    </a>
+    <a href="marketing-attribution.html">
+      <span class="dir">Next post →</span>
+      <span class="ttl">The channel that "works" depends on which model you trust</span>
+    </a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap-wide footer-row">
+    <span>© 2026 randomdatathoughts · Jacob Smith</span>
+    <span><a href="https://www.linkedin.com/" target="_blank" rel="noopener">LinkedIn</a></span>
+  </div>
+</footer>
+
+</body>
+</html>

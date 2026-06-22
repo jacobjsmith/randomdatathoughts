@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Why your transit app is always slightly wrong — randomdatathoughts</title>
+<meta name="description" content="A quick take on why real-time transit predictions are a forecasting problem wearing a UI.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap-wide masthead-row">
+    <a class="wordmark" href="../index.html">randomdatathoughts<span class="dot">.</span></a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="../index.html">Home</a>
+      <a href="../archive.html">All posts</a>
+      <a href="../about.html">About</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <header class="post-header wrap">
+    <div class="eyebrow-row">
+      <svg class="mark" viewBox="0 0 28 16" aria-hidden="true"><path d="M1 7 L5 11 L10 4 L15 9 L20 2 L27 8" /></svg>
+      <span class="eyebrow">Quick take · Transportation</span>
+    </div>
+    <h1>A quick look at why your transit app is always slightly wrong</h1>
+    <p class="post-byline">
+      By <a href="../about.html">Jacob Smith</a> · July 2026 · 3 min read
+    </p>
+  </header>
+
+  <article class="post-body wrap">
+    <p>
+      "3 minutes away" on a transit app isn't a measurement. It's a forecast,
+      built on a GPS ping from a few seconds ago and an assumption that the bus
+      will keep moving at roughly the speed it's moving now. Most of the time
+      that's close enough. Right before a red light, a stalled intersection,
+      or a stop with six people boarding, it isn't — and the app has no way
+      to know that yet.
+    </p>
+    <p>
+      This is a smaller version of the same problem every forecasting model
+      has: the prediction is only as good as the assumption that the recent
+      past keeps holding for the next few minutes. Weather forecasting deals
+      with this over days. Transit apps deal with it over minutes, which
+      is exactly why a 3-minute estimate can swing to "arrived" or "missed it"
+      so fast — there's almost no time buffer for the model to be wrong before
+      you find out it was.
+    </p>
+
+    <div class="embed-frame">
+      <span class="embed-label">A short clip on how this shows up in practice</span>
+      <div class="embed-box ratio-16-9">
+        <!--
+          VIDEO EMBED — works the same way for YouTube or a self-hosted clip.
+          Replace YOUR_VIDEO_ID with the actual YouTube video ID,
+          or swap this iframe for a <video> tag if hosting the file yourself.
+        -->
+        <iframe
+          src="https://www.youtube.com/embed/YOUR_VIDEO_ID"
+          title="Video"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen>
+        </iframe>
+      </div>
+    </div>
+
+    <p>
+      None of this means the apps are badly built. It means the next time
+      one is "wrong," it's worth remembering it was never claiming certainty
+      in the first place — it just didn't say "probably" out loud.
+    </p>
+  </article>
+
+  <nav class="post-footer-nav wrap-wide">
+    <a href="marketing-attribution.html">
+      <span class="dir">← Previous post</span>
+      <span class="ttl">The channel that "works" depends on which model you trust</span>
+    </a>
+    <a href="../archive.html">
+      <span class="dir">Browse</span>
+      <span class="ttl">All posts →</span>
+    </a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap-wide footer-row">
+    <span>© 2026 randomdatathoughts · Jacob Smith</span>
+    <span><a href="https://www.linkedin.com/" target="_blank" rel="noopener">LinkedIn</a></span>
+  </div>
+</footer>
+
+</body>
+</html>

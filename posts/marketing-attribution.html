@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The channel that "works" depends on which model you trust — randomdatathoughts</title>
+<meta name="description" content="Comparing first-touch and last-touch attribution on the same campaign data.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap-wide masthead-row">
+    <a class="wordmark" href="../index.html">randomdatathoughts<span class="dot">.</span></a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="../index.html">Home</a>
+      <a href="../archive.html">All posts</a>
+      <a href="../about.html">About</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <header class="post-header wrap">
+    <div class="eyebrow-row">
+      <svg class="mark" viewBox="0 0 28 16" aria-hidden="true"><path d="M1 9 L6 3 L11 10 L16 5 L21 12 L27 4" /></svg>
+      <span class="eyebrow">Full project · Marketing</span>
+    </div>
+    <h1>The channel that "works" depends on which model you trust</h1>
+    <p class="post-dek">
+      First-touch and last-touch attribution tell two different stories about
+      the same campaign data. Here's what changes when you switch models — and
+      what doesn't.
+    </p>
+    <p class="post-byline">
+      By <a href="../about.html">Jacob Smith</a> · July 2026 · 8 min read
+    </p>
+  </header>
+
+  <article class="post-body wrap">
+
+    <h2>The business question</h2>
+    <p>
+      A marketing team with five channels and one budget eventually has to answer
+      an uncomfortable question: which channel actually deserves the credit for a
+      conversion? Get the answer wrong and you cut a channel that was quietly doing
+      the real work, or keep funding one that was just along for the ride.
+    </p>
+
+    <h2>Why this matters</h2>
+    <p>
+      Attribution sounds like a measurement problem. It's actually a modeling
+      choice dressed up as one — and the choice you make changes the recommendation
+      you'd give a CMO, even when nothing about the underlying customer behavior
+      has changed at all.
+    </p>
+
+    <h2>The approach</h2>
+    <p>
+      I used anonymized e-commerce session data to build out both a first-touch
+      and a last-touch attribution model on the same conversion events, specifically
+      so the comparison would be clean — same customers, same conversions, only the
+      crediting rule changes.
+    </p>
+
+    <h3>SQL — channel performance, ranked</h3>
+    <pre><code>SELECT
+  traffic_source,
+  COUNT(DISTINCT session_id) AS sessions,
+  COUNT(DISTINCT CASE WHEN converted = 1 THEN session_id END) AS conversions,
+  ROUND(100.0 * COUNT(DISTINCT CASE WHEN converted = 1 THEN session_id END)
+        / COUNT(DISTINCT session_id), 2) AS conversion_rate,
+  RANK() OVER (
+    ORDER BY 100.0 * COUNT(DISTINCT CASE WHEN converted = 1 THEN session_id END)
+             / COUNT(DISTINCT session_id) DESC
+  ) AS rank_by_conversion
+FROM sessions
+GROUP BY traffic_source;</code></pre>
+
+    <h3>Python — two models, one dataset</h3>
+    <pre><code>import pandas as pd
+
+# first_touch credits the channel that started the journey;
+# last_touch credits the channel right before conversion.
+first_touch = (
+    sessions.sort_values("session_start")
+            .groupby("customer_id")
+            .first()["traffic_source"]
+)
+
+last_touch = (
+    sessions.sort_values("session_start")
+            .groupby("customer_id")
+            .last()["traffic_source"]
+)
+
+comparison = pd.DataFrame({
+    "first_touch": first_touch.value_counts(normalize=True),
+    "last_touch": last_touch.value_counts(normalize=True),
+}).fillna(0)
+
+comparison["swing"] = comparison["last_touch"] - comparison["first_touch"]</code></pre>
+    <p>
+      That <code>swing</code> column is the actual finding. A channel can look
+      strong under one model and mediocre under the other — and the size of that
+      swing tells you how much of the channel's apparent performance was really
+      "introduces people to the brand" versus "closes the sale."
+    </p>
+
+    <div class="embed-frame">
+      <span class="embed-label">Interactive dashboard — toggle between attribution models</span>
+      <div class="embed-box ratio-16-9">
+        <iframe
+          src="https://public.tableau.com/views/YOUR_VIZ_NAME/YOUR_SHEET_NAME?:showVizHome=no&:embed=true"
+          allowfullscreen>
+        </iframe>
+      </div>
+    </div>
+
+    <h2>Findings</h2>
+    <p>
+      Paid search looked strongest under last-touch — unsurprising, since people
+      often search for a brand right before buying it, after discovering it
+      somewhere else first. Organic social and content channels looked
+      meaningfully better under first-touch, which matches their actual job:
+      introducing people to something they hadn't considered yet.
+    </p>
+
+    <div class="takeaway">
+      <span class="eyebrow">Takeaway</span>
+      <p style="margin-top:0.4rem;">
+        Neither model is "correct." A team that only looks at last-touch will
+        systematically defund the channels doing the hardest, least-credited work —
+        getting someone's attention in the first place.
+      </p>
+    </div>
+
+    <h2>What I'd do next</h2>
+    <p>
+      A proper multi-touch or data-driven attribution model would split credit
+      across the full path rather than picking a single winner. That's the
+      honest next step — this project deliberately starts with the two simplest
+      models because the gap between them is itself the most useful finding,
+      before adding more modeling complexity on top.
+    </p>
+
+  </article>
+
+  <nav class="post-footer-nav wrap-wide">
+    <a href="hmda-credit-risk.html">
+      <span class="dir">← Previous post</span>
+      <span class="ttl">Who actually gets denied a mortgage, and where</span>
+    </a>
+    <a href="quick-take-transit.html">
+      <span class="dir">Next post →</span>
+      <span class="ttl">Why your transit app is always slightly wrong</span>
+    </a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap-wide footer-row">
+    <span>© 2026 randomdatathoughts · Jacob Smith</span>
+    <span><a href="https://www.linkedin.com/" target="_blank" rel="noopener">LinkedIn</a></span>
+  </div>
+</footer>
+
+</body>
+</html>
