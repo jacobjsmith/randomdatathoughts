@@ -32,6 +32,21 @@
 
 * { box-sizing: border-box; }
 
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  z-index: 100;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0.5rem 1rem;
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  border-radius: 0 0 4px 4px;
+  text-decoration: none;
+}
+.skip-link:focus { top: 0; }
+
 html {
   scroll-behavior: smooth;
 }
@@ -152,7 +167,7 @@ h1, h2, h3 {
    hero (home)
    ============================================ */
 .hero {
-  padding: 4.5rem 0 3rem;
+  padding: 4.5rem 0 4rem;
 }
 .hero h1 {
   font-size: var(--step-4);
@@ -166,7 +181,7 @@ h1, h2, h3 {
   margin-top: 1rem;
 }
 .hero .cadence {
-  margin-top: 1.75rem;
+  margin-top: 2.5rem;
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
@@ -205,7 +220,9 @@ h1, h2, h3 {
   border-bottom: 1px solid var(--rule);
   text-decoration: none;
   color: inherit;
+  transition: background-color 0.15s ease;
 }
+.entry:hover { background-color: var(--paper-dim); }
 .entry:hover .entry-title { color: var(--accent); }
 .entry-meta {
   font-family: var(--font-mono);
@@ -439,6 +456,14 @@ h1, h2, h3 {
 }
 .about-hero h1 { font-size: var(--step-3); }
 .about-body p { max-width: 64ch; }
+.about-body blockquote {
+  border-left: 2px solid var(--tag);
+  margin: 1.5rem 0;
+  padding-left: 1.2rem;
+  font-style: italic;
+  color: var(--ink-soft);
+  max-width: 60ch;
+}
 .linkedin-pill {
   display: inline-flex;
   align-items: center;
