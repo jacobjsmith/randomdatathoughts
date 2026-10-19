@@ -3,8 +3,8 @@
    ============================================ */
 :root {
   /* color */
-  --paper:        #FAF8F4;
-  --paper-dim:     #F2EFE8;
+  --paper:        #FFFFFF;
+  --paper-dim:     #F4F4F4;
   --ink:          #1C1B19;
   --ink-soft:     #5B5650;
   --rule:         #E3DFD6;
@@ -14,9 +14,10 @@
   --tag-soft:     #F3E3D2;
 
   /* type */
-  --font-display: "Fraunces", Georgia, serif;
-  --font-body:    "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono:    "JetBrains Mono", "SF Mono", Consolas, monospace;
+  --font-display: "Times New Roman", Times, serif;
+  --font-body:    "Times New Roman", Times, serif;
+  --font-mono:    "Times New Roman", Times, serif;   /* labels, nav, meta */
+  --font-code:    ui-monospace, "SF Mono", Menlo, Consolas, monospace;   /* code blocks only */
 
   /* scale */
   --step--1: clamp(0.8rem, 0.78rem + 0.1vw, 0.875rem);
@@ -345,7 +346,7 @@ h1, h2, h3 {
   max-width: 60ch;
 }
 .post-body code {
-  font-family: var(--font-mono);
+  font-family: var(--font-code);
   font-size: 0.9em;
   background: var(--paper-dim);
   padding: 0.1em 0.4em;
@@ -357,7 +358,7 @@ h1, h2, h3 {
   padding: 1.2rem 1.4rem;
   border-radius: 6px;
   overflow-x: auto;
-  font-family: var(--font-mono);
+  font-family: var(--font-code);
   font-size: 0.85em;
   line-height: 1.55;
 }
