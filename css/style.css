@@ -382,6 +382,13 @@ h1, h2, h3 {
   overflow: hidden;
   background: var(--paper-dim);
 }
+/* lets a wide dashboard break out of the text column (up to the wide layout width) */
+.embed-frame.embed-wide {
+  width: min(var(--max-w-wide) - 3rem, calc(100vw - 3rem));
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+}
 .embed-box.ratio-16-9 { aspect-ratio: 16 / 9; }
 .embed-box.ratio-4-3  { aspect-ratio: 4 / 3; }
 .embed-box iframe {

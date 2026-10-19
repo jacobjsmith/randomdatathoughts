@@ -51,6 +51,24 @@ class on its entry-list tag so it visually reads as lighter content.
 </div>
 ```
 
+### Wide dashboards
+
+Tableau dashboards built at a fixed size wider than the text column (e.g. 1280×820)
+get cramped in the normal embed. Add `embed-wide` to the `.embed-frame` so it breaks
+out to the wide layout width, and set the aspect ratio to match the dashboard:
+
+```html
+<div class="embed-frame embed-wide">
+  <span class="embed-label">Your label here</span>
+  <div class="embed-box" style="aspect-ratio: 1280 / 820;">
+    <iframe src="PASTE_YOUR_TABLEAU_URL_HERE" allowfullscreen></iframe>
+  </div>
+</div>
+```
+
+In Tableau, setting the dashboard **Size** to **Automatic** before publishing lets it
+scale to whatever width the embed gets.
+
 ## Embedding a Power BI report
 
 Power BI's process is nearly identical:

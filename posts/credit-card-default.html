@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Credit card default is a payment-history story — randomdatathoughts</title>
+<meta name="description" content="What separates credit card clients who default from the ones who don't, using 24,000 accounts, Python, and a Tableau dashboard built for a risk team.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+<link rel="shortcut icon" href="/favicon/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-title" content="RandomDataThoughts" />
+<link rel="manifest" href="/favicon/site.webmanifest" />
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<header class="masthead">
+  <div class="wrap-wide masthead-row">
+    <a class="wordmark" href="../index.html">randomdatathoughts<span class="dot">.</span></a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="../index.html">Home</a>
+      <a href="../archive.html">All posts</a>
+      <a href="../about.html">About</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main-content">
+  <header class="post-header wrap">
+    <div class="eyebrow-row">
+      <svg class="mark" viewBox="0 0 28 16" aria-hidden="true"><path d="M1 10 L6 5 L11 12 L16 3 L21 9 L27 6" /></svg>
+      <span class="eyebrow">Full project · Finance</span>
+    </div>
+    <h1>Credit card default is a payment-history story, not a customer-profile story</h1>
+    <p class="post-dek">
+      24,000 card accounts and one question: who misses next month's payment? Python for the
+      cleanup, Tableau for the view a risk team would actually use, and why who the customer is
+      matters far less than what they did last month.
+    </p>
+    <p class="post-byline">
+      By <a href="../about.html">Jacob Smith</a> · October 2026 · 8 min read
+    </p>
+  </header>
+
+  <article class="post-body wrap">
+
+    <h2>The business question</h2>
+    <p>
+      Picture the risk team at a card issuer. They have a book of open accounts and a limited
+      amount of attention: collections calls, credit line reviews, hardship offers. The question
+      they actually care about is <em>which of these customers is about to stop paying, and how
+      early can we tell?</em> Everything else, including whatever model eventually gets built, is
+      in service of pointing that attention at the right accounts.
+    </p>
+    <p>
+      So before building anything predictive, I wanted to answer a simpler version: which
+      attributes separate the people who default from the people who don't at all? If it's mostly
+      behavior, the model and the operations should be built around behavior. If it's mostly who
+      the customer is, that's a very different (and much more legally fraught) conversation.
+    </p>
+
+    <h2>Why this matters</h2>
+    <p>
+      The data is the UCI "Default of Credit Card Clients" dataset: real accounts from a bank in
+      Taiwan, covering April through September 2005. Each row has the client's credit limit, six
+      months of repayment status, statement balances, payments, a few demographic fields, and
+      whether they defaulted on the following month's payment.
+    </p>
+    <p>
+      The timing makes it more interesting than a typical teaching dataset. In 2005 and 2006
+      Taiwan went through a credit card debt crisis after banks issued cards aggressively and a
+      lot of cardholders ran up balances they couldn't carry. That's why 22.1% of these clients
+      defaulted, several times what a healthy US portfolio would show. It's effectively a
+      portfolio under stress, which is exactly when you find out which warning signs are real.
+    </p>
+
+    <h2>The approach</h2>
+    <p>
+      I grouped every candidate signal into three buckets and compared default rates across each:
+    </p>
+    <ul>
+      <li><strong>Behavior:</strong> most recent repayment status, how many of the last six months were late, and utilization (balance divided by limit).</li>
+      <li><strong>What the bank already decided:</strong> the credit limit.</li>
+      <li><strong>Who the customer is:</strong> age, education, marital status, and sex.</li>
+    </ul>
+    <p>
+      The measure is simple on purpose: default rate within each group, and how far that sits
+      above or below the portfolio's 22.1%. No model yet. If a grouped default rate can't tell
+      the difference between two segments, a model probably won't find much there either.
+    </p>
+
+    <h2>The build</h2>
+    <h3>Python: decoding the data, and one thing that didn't add up</h3>
+    <p>
+      The raw file is all numeric codes: education is 1 through 6, marital status is 0 through 3,
+      and repayment status runs from -2 to 8. The first job was turning those into labels a risk
+      manager would recognize, then building bands for age, credit limit and utilization.
+    </p>
+    <pre><code>import numpy as np
+import pandas as pd
+
+d = pd.read_csv("credit.csv")
+
+pay = d["PAY_1"]   # most recent month's repayment status
+d["repayment_status"] = np.select(
+    [pay == -2, pay == -1, pay == 0, pay == 1, pay == 2],
+    ["No balance", "Paid in full", "Revolving, current",
+     "1 month late", "2 months late"],
+    "3+ months late",
+)
+
+# How many of the last six months were late, not just the latest one
+d["months_late"] = (d[[f"PAY_{i}" for i in range(1, 7)]] >= 1).sum(axis=1)
+
+# Codes 0, 4, 5 and 6 aren't documented; group them rather than guess
+d["education"] = d["EDUCATION"].map(
+    {1: "Graduate School", 2: "University", 3: "High School"}
+).fillna("Other / Unknown")</code></pre>
+    <p>
+      The part worth flagging: the documented code definitions don't fully match the data.
+      About two thirds of the clients with no statement balance are coded "1 month late," which
+      is hard to square with having nothing to pay. I kept the codes as published and called it
+      out rather than quietly recoding it, because a silent fix would make the "1 month late"
+      group look cleaner than it is.
+    </p>
+
+    <h3>Tableau: two views for two different conversations</h3>
+    <p>
+      The <strong>Portfolio Overview</strong> is the "where does risk live" page: headline numbers,
+      then default rate by repayment status, months late, credit limit, utilization and age. The
+      <strong>Segment Detail</strong> page is the drill-down: a heatmap of repayment status against
+      credit limit, and how far each customer segment sits from the portfolio rate. The core
+      calculations are short:
+    </p>
+    <pre><code>// Default Rate
+SUM([Defaulted]) / COUNT([Client ID])
+
+// Portfolio Default Rate: fixed at the whole book, so it doesn't move with filters
+MIN({ FIXED : SUM([Defaulted]) }) / MIN({ FIXED : COUNT([Client ID]) })
+
+// Default Rate vs Portfolio, in percentage points
+[Default Rate] - [Portfolio Default Rate]</code></pre>
+
+    <div class="embed-frame embed-wide">
+      <span class="embed-label">Interactive dashboard: use the tabs to switch between Portfolio Overview and Segment Detail</span>
+      <div class="embed-box" style="aspect-ratio: 1280 / 820;">
+        <!--
+          TABLEAU PUBLIC EMBED: replace src with the published view's URL.
+          On Tableau Public: open the viz → Share → copy the link, then add
+          ?:showVizHome=no&:embed=true to the end.
+        -->
+        <iframe
+          src="https://public.tableau.com/views/CreditDefaultRisk_17923834757270/PortfolioOverview?:showVizHome=no&:embed=true&:tabs=yes&:language=en-US&:display_count=n"
+          title="Credit card default risk dashboard"
+          allowfullscreen>
+        </iframe>
+      </div>
+    </div>
+
+    <h2>Findings</h2>
+
+    <h3>1. The most recent payment is the strongest signal by a wide margin</h3>
+    <p>
+      Clients who are revolving a balance but current default at 12.8%. One month late, that
+      jumps to 33.8%. Two months late, it's 69.6%. The step from one missed payment to two is the
+      cliff: the default rate roughly doubles, and at that point most of these clients are
+      already on their way out.
+    </p>
+
+    <h3>2. History stacks up in a staircase</h3>
+    <p>
+      Counting how many of the last six months were late gives a remarkably clean progression:
+      11.8% for clients with no late months, 29.6% with one, 50.8% with three, and 70.4% for
+      clients who were late in all six. No single month tells the whole story, but the count
+      almost does.
+    </p>
+
+    <h3>3. Risk is concentrated, which is good news operationally</h3>
+    <p>
+      The 22.5% of clients who are currently behind on a payment account for 51% of all defaults.
+      Widen that to anyone who was late at any point in the last six months, about a third of the
+      book, and you've covered roughly 65% of defaults. A collections team that focused on that
+      third would be looking at most of the problem.
+    </p>
+
+    <h3>4. Low credit limits look risky, but the limit isn't the cause</h3>
+    <p>
+      Clients with limits under NT$50K default at 35.8%; clients at NT$300K and above default at
+      13.8%. It would be easy to read that as "lower limits cause default." They don't. The limit
+      is the bank's own earlier risk judgment showing up again: riskier applicants were given
+      smaller limits in the first place. Cutting someone's limit doesn't make them a safer
+      borrower.
+    </p>
+
+    <h3>5. Demographics barely move the needle</h3>
+    <p>
+      Compared with a nearly 60-point spread across repayment status, the customer-profile fields
+      are almost flat. Men default at 24.3% and women at 20.7%. Married clients at 23.5%, single
+      at 20.9%. Education ranges from 19.3% for graduate school to 24.9% for high school. Age is
+      a gentle U-shape, highest under 25 and over 55.
+    </p>
+    <p>
+      That matters for a second reason. In a US lending context, the Equal Credit Opportunity Act
+      bars using sex or marital status in credit decisions. They're in the dashboard as filters
+      so you can see for yourself how little they explain, not as anything a lender should act on.
+    </p>
+
+    <div class="takeaway">
+      <span class="eyebrow">Takeaway</span>
+      <p style="margin-top:0.4rem;">
+        Default risk in this portfolio is overwhelmingly a payment-history story. The practical
+        version: treat the first missed payment as an early-warning trigger and the second as an
+        emergency, and spend attention on the third of the book with any recent late payment
+        rather than on customer profiles.
+      </p>
+    </div>
+
+    <h2>What I'd do next</h2>
+    <p>
+      The obvious next step is an actual probability-of-default model: a logistic regression
+      first, because it's explainable, then a gradient-boosted model to see how much accuracy the
+      extra complexity buys. I'd pick the approval cutoff based on what each kind of mistake
+      costs, since missing a defaulter is far more expensive than wrongly flagging a good
+      customer. Multiplying each client's default probability by their balance gives expected
+      loss, which is the number that actually ranks where to spend attention. Clients who
+      defaulted here were carrying NT$258 million, about 21% of all balances on the book.
+    </p>
+    <p>
+      I'd also rerun everything on the full 30,000-row file (this copy has 24,000), and dig into
+      that repayment-code inconsistency before trusting the "1 month late" group in a model.
+    </p>
+
+  </article>
+
+  <nav class="post-footer-nav wrap-wide">
+    <a href="../index.html">
+      <span class="dir">← Back to</span>
+      <span class="ttl">Home</span>
+    </a>
+    <a href="hmda-credit-risk.html">
+      <span class="dir">Related →</span>
+      <span class="ttl">Who actually gets denied a mortgage, and where</span>
+    </a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap-wide footer-row">
+    <span>© 2026 randomdatathoughts · Jacob Smith</span>
+    <span><a href="../index.html">Home</a> · <a href="https://www.linkedin.com/in/jacobjysmith/" target="_blank" rel="noopener">LinkedIn</a></span>
+  </div>
+</footer>
+
+</body>
+</html>
