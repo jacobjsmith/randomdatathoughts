@@ -384,10 +384,18 @@ h1, h2, h3 {
 }
 /* lets a wide dashboard break out of the text column (up to the wide layout width) */
 .embed-frame.embed-wide {
-  width: min(var(--max-w-wide) - 3rem, calc(100vw - 3rem));
+  /* dashboard's native size; override per embed with style="--dash-w: ...; --dash-h: ..." */
+  --dash-w: 1280;
+  --dash-h: 820;
+  --embed-w: min(calc(var(--dash-w) * 1px + 2px), calc(100vw - 3rem));
+  width: var(--embed-w);
   position: relative;
   left: 50%;
   transform: translateX(-50%);
+}
+/* height follows the dashboard's ratio, plus room for Tableau's tab bar and toolbar */
+.embed-frame.embed-wide .embed-box {
+  height: calc(var(--embed-w) * var(--dash-h) / var(--dash-w) + 64px);
 }
 .embed-box.ratio-16-9 { aspect-ratio: 16 / 9; }
 .embed-box.ratio-4-3  { aspect-ratio: 4 / 3; }

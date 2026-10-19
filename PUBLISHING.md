@@ -54,13 +54,15 @@ class on its entry-list tag so it visually reads as lighter content.
 ### Wide dashboards
 
 Tableau dashboards built at a fixed size wider than the text column (e.g. 1280×820)
-get cramped in the normal embed. Add `embed-wide` to the `.embed-frame` so it breaks
-out to the wide layout width, and set the aspect ratio to match the dashboard:
+get cramped in the normal embed. Add `embed-wide` to the `.embed-frame` and set
+`--dash-w` / `--dash-h` to the dashboard's size in pixels. The box grows to the
+dashboard's full width (or the screen width, if smaller) and adds room for Tableau's
+tab bar and toolbar:
 
 ```html
-<div class="embed-frame embed-wide">
+<div class="embed-frame embed-wide" style="--dash-w: 1280; --dash-h: 820;">
   <span class="embed-label">Your label here</span>
-  <div class="embed-box" style="aspect-ratio: 1280 / 820;">
+  <div class="embed-box">
     <iframe src="PASTE_YOUR_TABLEAU_URL_HERE" allowfullscreen></iframe>
   </div>
 </div>
