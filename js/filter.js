@@ -14,7 +14,7 @@
 
       entries.forEach((entry) => {
         const matches = filter === "all" || entry.dataset.category === filter;
-        entry.style.display = matches ? "" : "none";
+        entry.style.display = matches ? "grid" : "none";
         if (matches) visibleCount++;
       });
 
