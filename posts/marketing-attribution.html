@@ -7,7 +7,7 @@
 <meta name="description" content="Comparing first-touch and last-touch attribution on the same campaign data.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Condensed:wght@500;700&family=Libre+Franklin:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/style.css">
 <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
 <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
@@ -19,12 +19,24 @@
 <body>
 <a href="#main-content" class="skip-link">Skip to content</a>
 
-<header class="masthead">
-  <div class="wrap-wide masthead-row">
-    <a class="wordmark" href="../index.html">randomdatathoughts<span class="dot">.</span></a>
-    <nav class="nav-links" aria-label="Primary">
+<div class="topbar">
+  <div class="wrap-wide topbar-row">
+    <span>Analysis &amp; takes by <a href="../about.html">Jacob Smith</a></span>
+    <a href="https://www.linkedin.com/in/jacobjysmith/" target="_blank" rel="noopener">LinkedIn</a>
+  </div>
+</div>
+
+<header class="masthead masthead-compact">
+  <div class="wrap-wide">
+    <a class="wordmark" href="../index.html">RandomDataThoughts.</a>
+    <nav class="section-nav" aria-label="Sections">
       <a href="../index.html">Home</a>
-      <a href="../archive.html">All posts</a>
+      <a href="../archive.html#finance">Finance</a>
+      <a href="../archive.html#real-estate">Real Estate</a>
+      <a href="../archive.html#tech">Tech</a>
+      <a href="../archive.html#transportation">Transportation</a>
+      <a href="../archive.html#health">Health</a>
+      <a href="../archive.html">All Posts</a>
       <a href="../about.html">About</a>
     </nav>
   </div>
@@ -33,10 +45,9 @@
 <main id="main-content">
   <header class="post-header wrap">
     <div class="eyebrow-row">
-      <svg class="mark" viewBox="0 0 28 16" aria-hidden="true"><path d="M1 9 L6 3 L11 10 L16 5 L21 12 L27 4" /></svg>
       <span class="eyebrow">Full project · Marketing</span>
     </div>
-    <h1>The channel that "works" depends on which model you trust</h1>
+    <h1>The Channel That “Works” Depends on Which Model You Trust</h1>
     <p class="post-dek">
       First-touch and last-touch attribution tell two different stories about
       the same campaign data. Here's what changes when you switch models — and
@@ -159,7 +170,7 @@ comparison["swing"] = comparison["last_touch"] - comparison["first_touch"]</code
   <nav class="post-footer-nav wrap-wide">
     <a href="hmda-credit-risk.html">
       <span class="dir">← Previous post</span>
-      <span class="ttl">Who actually gets denied a mortgage, and where</span>
+      <span class="ttl">Who Actually Gets Denied a Mortgage, and Where</span>
     </a>
     <a href="quick-take-transit.html">
       <span class="dir">Next post →</span>
@@ -170,8 +181,8 @@ comparison["swing"] = comparison["last_touch"] - comparison["first_touch"]</code
 
 <footer class="site-footer">
   <div class="wrap-wide footer-row">
-    <span>© 2026 randomdatathoughts · Jacob Smith</span>
-    <span><a href="../index.html">Home</a> · <a href="https://www.linkedin.com/in/jacobjysmith/" target="_blank" rel="noopener">LinkedIn</a></span>
+    <a class="footer-wordmark" href="../index.html">RandomDataThoughts.</a>
+    <span>© 2026 Jacob Smith · <a href="../archive.html">All posts</a> · <a href="../about.html">About</a> · <a href="https://www.linkedin.com/in/jacobjysmith/" target="_blank" rel="noopener">LinkedIn</a></span>
   </div>
 </footer>
 

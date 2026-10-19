@@ -11,27 +11,32 @@ can possibly work, and it costs nothing to host.
 2. Edit, top to bottom:
    - `<title>` and `<meta name="description">` in the `<head>`
    - The eyebrow line (`Full project · [Category]`)
-   - The signature mark path — change the numbers in `d="M1 4 L6 11..."`
-     to any squiggle you like; it doesn't need to mean anything, that's the point
-   - `<h1>` and `.post-dek`
+   - `<h1>` (headlines are Title Case) and `.post-dek`
    - Byline date and read time
    - Body content — keep the section pattern (Business question → Why this
      matters → Approach → Build → Findings → What I'd do next), but it's
      a guide, not a rule
    - Swap the Tableau `<iframe src="...">` for your real embed URL (see below)
    - Update the footer nav links to point to your real previous/next posts
-3. Add a matching `<a class="entry">` block to **both**:
-   - `index.html` (only if it should appear in "Latest" — keep this to your
-     3-4 most recent)
-   - `archive.html` (every post goes here, with the correct `data-category`
-     attribute so the filter buttons work: `finance`, `real-estate`, `tech`,
-     `transportation`, or `health`)
+3. Add it to `archive.html`: copy an `<a class="entry">` block, with the correct
+   `data-category` attribute so the filters and section nav work: `finance`,
+   `real-estate`, `tech`, `transportation`, or `health`.
+4. Update the front page (`index.html`). It's laid out like a newspaper front page:
+   - **Lead story** (`.front-lead`): the newest full project. It has a chart in
+     place of a lead photo. Swap in a chart from the new post, or delete the
+     `<figure class="chart-figure">` block and let the headline lead on its own.
+     Move the old lead's `<article class="story">` into the left column.
+   - **Left column** (`.front-left`): the next one or two full projects.
+   - **Quick Takes** (`.front-right`): quick takes go here.
+   - **Ticker** (`.ticker`): headline numbers from the lead post. Each figure is a
+     `.tick`; add `is-up` (red) or `is-down` (green) and a `.tick-delta` when a
+     number is above or below a baseline. Plain `.tick` for neutral numbers.
 
 ## Adding a new quick take
 
 Same process, but duplicate `posts/quick-take-transit.html` instead — it's
 shorter and skips the heavy SQL/Python code sections. Use the `tag type-quick`
-class on its entry-list tag so it visually reads as lighter content.
+class on its archive tag, and put it in the front page's Quick Takes rail.
 
 ## Embedding a Tableau Public dashboard
 
@@ -113,12 +118,3 @@ iframe:
 
 Keep video files reasonably small (compress before uploading) — large `.mp4`
 files will slow down page load and most static hosts cap free-tier bandwidth.
-
-## A note on the signature mark
-
-Every post has a small squiggle icon next to its date (`<svg class="mark">`).
-It's meant to look slightly different on every post — that's the "random" in
-randomdatathoughts. When you add a post, just change a few of the numbers in
-the `d="M1 4 L6 11 L11 6..."` path to nudge the shape. There's no correct
-answer here; any sequence of coordinates that stays roughly within the
-`viewBox="0 0 28 16"` will look fine.
