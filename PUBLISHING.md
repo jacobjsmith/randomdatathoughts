@@ -62,7 +62,7 @@ tab bar and toolbar:
 ```html
 <div class="embed-frame embed-wide" style="--dash-w: 1280; --dash-h: 820;">
   <span class="embed-label">Your label here</span>
-  <div class="embed-box">
+  <div class="embed-box" style="aspect-ratio: 1280 / 820;">
     <iframe src="PASTE_YOUR_TABLEAU_URL_HERE" allowfullscreen></iframe>
   </div>
 </div>
@@ -124,3 +124,14 @@ randomdatathoughts. When you add a post, just change a few of the numbers in
 the `d="M1 4 L6 11 L11 6..."` path to nudge the shape. There's no correct
 answer here; any sequence of coordinates that stays roughly within the
 `viewBox="0 0 28 16"` will look fine.
+
+## After changing css/style.css
+
+Browsers keep a saved copy of the stylesheet for up to 4 hours, so visitors can see
+new HTML with old CSS. Whenever you edit `css/style.css`, bump the `?v=` date on the
+stylesheet link in every page (e.g. `css/style.css?v=2026-10-19` →
+`css/style.css?v=2026-11-02`) so browsers fetch the new file:
+
+```sh
+sed -i '' -E 's#style\.css\?v=[0-9-]+#style.css?v=NEW-DATE#' *.html posts/*.html
+```
