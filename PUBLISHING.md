@@ -11,8 +11,6 @@ can possibly work, and it costs nothing to host.
 2. Edit, top to bottom:
    - `<title>` and `<meta name="description">` in the `<head>`
    - The eyebrow line (`Full project · [Category]`)
-   - The signature mark path — change the numbers in `d="M1 4 L6 11..."`
-     to any squiggle you like; it doesn't need to mean anything, that's the point
    - `<h1>` and `.post-dek`
    - Byline date and read time
    - Body content — keep the section pattern (Business question → Why this
@@ -20,18 +18,18 @@ can possibly work, and it costs nothing to host.
      a guide, not a rule
    - Swap the Tableau `<iframe src="...">` for your real embed URL (see below)
    - Update the footer nav links to point to your real previous/next posts
-3. Add a matching `<a class="entry">` block to **both**:
-   - `index.html` (only if it should appear in "Latest" — keep this to your
-     3-4 most recent)
-   - `archive.html` (every post goes here, with the correct `data-category`
-     attribute so the filter buttons work: `finance`, `real-estate`, `tech`,
-     `transportation`, or `health`)
+3. Add a matching `<li class="entry">` to the top of the list in **both**
+   (newest first):
+   - `index.html`: date, linked title, and a one-line `.entry-dek`
+   - `archive.html`: date, linked title, a `.entry-topic` line, and the
+     correct `data-category` attribute so the filters work: `finance`,
+     `real-estate`, `tech`, `transportation`, or `health`
 
 ## Adding a new quick take
 
 Same process, but duplicate `posts/quick-take-transit.html` instead — it's
-shorter and skips the heavy SQL/Python code sections. Use the `tag type-quick`
-class on its entry-list tag so it visually reads as lighter content.
+shorter and skips the heavy SQL/Python code sections. In the archive, start
+its `.entry-topic` with "Quick take," (e.g. `Quick take, transportation`).
 
 ## Embedding a Tableau Public dashboard
 
@@ -113,12 +111,3 @@ iframe:
 
 Keep video files reasonably small (compress before uploading) — large `.mp4`
 files will slow down page load and most static hosts cap free-tier bandwidth.
-
-## A note on the signature mark
-
-Every post has a small squiggle icon next to its date (`<svg class="mark">`).
-It's meant to look slightly different on every post — that's the "random" in
-randomdatathoughts. When you add a post, just change a few of the numbers in
-the `d="M1 4 L6 11 L11 6..."` path to nudge the shape. There's no correct
-answer here; any sequence of coordinates that stays roughly within the
-`viewBox="0 0 28 16"` will look fine.
